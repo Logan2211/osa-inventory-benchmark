@@ -1,0 +1,29 @@
+---
+# Copyright 2017, Logan Vig <logan2211@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+#   Adapted for pre-ansible 2.2
+#    - debug:
+#        msg: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{{ groups['all_containers'] | map('extract', hostvars, 'container_address') | list | join(',') }}"
+    - debug:
+        msg: |-
+          {% set _var = ['localhost', '127.0.0.1', internal_lb_vip_address,
+             external_lb_vip_address] %}
+          {% for host in groups['all_containers'] %}
+          {%   set _ = _var.append(hostvars[host]['container_address']) %}
+          {% endfor %}
+          {{ _var | join(',') }}

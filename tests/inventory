@@ -1,0 +1,14 @@
+[all]
+localhost ansible_connection=local ansible_become=True
+
+[osa_containers]
+osa1
+
+[docker_containers:children]
+osa_containers
+
+[docker_containers:vars]
+ansible_connection=docker
+docker_privileged=yes
+docker_user=root
+physical_host=localhost

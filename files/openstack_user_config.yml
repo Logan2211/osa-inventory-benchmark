@@ -1,0 +1,575 @@
+---
+cidr_networks:
+  container: 172.29.236.0/22
+  tunnel: 172.29.240.0/22
+  storage: 172.29.244.0/22
+
+used_ips:
+  - "172.29.236.1,172.29.236.50"
+  - "172.29.240.1,172.29.240.50"
+  - "172.29.244.1,172.29.244.50"
+  - "172.29.248.1,172.29.248.50"
+
+global_overrides:
+  # The internal and external VIP should be different IPs, however they
+  # do not need to be on separate networks.
+  external_lb_vip_address: 172.29.236.10
+  internal_lb_vip_address: 172.29.236.11
+  tunnel_bridge: "br-vxlan"
+  management_bridge: "br-mgmt"
+  provider_networks:
+    - network:
+        container_bridge: "br-mgmt"
+        container_type: "veth"
+        container_interface: "eth1"
+        ip_from_q: "container"
+        type: "raw"
+        group_binds:
+          - all_containers
+          - hosts
+        is_container_address: true
+        is_ssh_address: true
+    - network:
+        container_bridge: "br-vxlan"
+        container_type: "veth"
+        container_interface: "eth10"
+        ip_from_q: "tunnel"
+        type: "vxlan"
+        range: "1:1000"
+        net_name: "vxlan"
+        group_binds:
+          - neutron_linuxbridge_agent
+    - network:
+        container_bridge: "br-vlan"
+        container_type: "veth"
+        container_interface: "eth12"
+        host_bind_override: "eth12"
+        type: "flat"
+        net_name: "flat"
+        group_binds:
+          - neutron_linuxbridge_agent
+    - network:
+        container_bridge: "br-vlan"
+        container_type: "veth"
+        container_interface: "eth11"
+        type: "vlan"
+        range: "1:1"
+        net_name: "vlan"
+        group_binds:
+          - neutron_linuxbridge_agent
+    - network:
+        container_bridge: "br-storage"
+        container_type: "veth"
+        container_interface: "eth2"
+        ip_from_q: "storage"
+        type: "raw"
+        group_binds:
+          - glance_api
+          - cinder_api
+          - cinder_volume
+          - nova_compute
+
+###
+### Infrastructure
+###
+
+infra: &infra
+  infra1:
+    ip: 172.29.236.5
+  infra2:
+    ip: 172.29.236.6
+  infra3:
+    ip: 172.29.236.7
+
+
+# galera, memcache, rabbitmq, utility
+shared-infra_hosts: *infra
+
+# repository (apt cache, python packages, etc)
+repo-infra_hosts: *infra
+
+# load balancer
+haproxy_hosts: *infra
+
+###
+### OpenStack
+###
+
+# keystone
+identity_hosts: *infra
+
+# cinder api services
+storage-infra_hosts: *infra
+
+# glance
+image_hosts: *infra
+
+# nova api, conductor, etc services
+compute-infra_hosts: *infra
+
+# heat
+orchestration_hosts: *infra
+
+# horizon
+dashboard_hosts: *infra
+
+# neutron server, agents (L3, etc)
+network_hosts: *infra
+
+# cinder storage host (LVM-backed)
+storage_hosts:
+  storage1:
+    ip: 172.29.236.13
+    container_vars:
+      cinder_backends:
+        limit_container_types: cinder_volume
+        lvm:
+          volume_group: cinder-volumes
+          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+          volume_backend_name: LVM_iSCSI
+          iscsi_ip_address: "172.29.244.13"
+
+compute: &compute
+  compute1:
+    ip: 172.29.237.10
+  compute2:
+    ip: 172.29.237.11
+  compute3:
+    ip: 172.29.237.12
+  compute4:
+    ip: 172.29.237.13
+  compute5:
+    ip: 172.29.237.14
+  compute6:
+    ip: 172.29.237.15
+  compute7:
+    ip: 172.29.237.16
+  compute8:
+    ip: 172.29.237.17
+  compute9:
+    ip: 172.29.237.18
+  compute10:
+    ip: 172.29.237.19
+  compute11:
+    ip: 172.29.237.20
+  compute12:
+    ip: 172.29.237.21
+  compute13:
+    ip: 172.29.237.22
+  compute14:
+    ip: 172.29.237.23
+  compute15:
+    ip: 172.29.237.24
+  compute16:
+    ip: 172.29.237.25
+  compute17:
+    ip: 172.29.237.26
+  compute18:
+    ip: 172.29.237.27
+  compute19:
+    ip: 172.29.237.28
+  compute20:
+    ip: 172.29.237.29
+  compute21:
+    ip: 172.29.237.30
+  compute22:
+    ip: 172.29.237.31
+  compute23:
+    ip: 172.29.237.32
+  compute24:
+    ip: 172.29.237.33
+  compute25:
+    ip: 172.29.237.34
+  compute26:
+    ip: 172.29.237.35
+  compute27:
+    ip: 172.29.237.36
+  compute28:
+    ip: 172.29.237.37
+  compute29:
+    ip: 172.29.237.38
+  compute30:
+    ip: 172.29.237.39
+  compute31:
+    ip: 172.29.237.40
+  compute32:
+    ip: 172.29.237.41
+  compute33:
+    ip: 172.29.237.42
+  compute34:
+    ip: 172.29.237.43
+  compute35:
+    ip: 172.29.237.44
+  compute36:
+    ip: 172.29.237.45
+  compute37:
+    ip: 172.29.237.46
+  compute38:
+    ip: 172.29.237.47
+  compute39:
+    ip: 172.29.237.48
+  compute40:
+    ip: 172.29.237.49
+  compute41:
+    ip: 172.29.237.50
+  compute42:
+    ip: 172.29.237.51
+  compute43:
+    ip: 172.29.237.52
+  compute44:
+    ip: 172.29.237.53
+  compute45:
+    ip: 172.29.237.54
+  compute46:
+    ip: 172.29.237.55
+  compute47:
+    ip: 172.29.237.56
+  compute48:
+    ip: 172.29.237.57
+  compute49:
+    ip: 172.29.237.58
+  compute50:
+    ip: 172.29.237.59
+  compute51:
+    ip: 172.29.237.60
+  compute52:
+    ip: 172.29.237.61
+  compute53:
+    ip: 172.29.237.62
+  compute54:
+    ip: 172.29.237.63
+  compute55:
+    ip: 172.29.237.64
+  compute56:
+    ip: 172.29.237.65
+  compute57:
+    ip: 172.29.237.66
+  compute58:
+    ip: 172.29.237.67
+  compute59:
+    ip: 172.29.237.68
+  compute60:
+    ip: 172.29.237.69
+  compute61:
+    ip: 172.29.237.70
+  compute62:
+    ip: 172.29.237.71
+  compute63:
+    ip: 172.29.237.72
+  compute64:
+    ip: 172.29.237.73
+  compute65:
+    ip: 172.29.237.74
+  compute66:
+    ip: 172.29.237.75
+  compute67:
+    ip: 172.29.237.76
+  compute68:
+    ip: 172.29.237.77
+  compute69:
+    ip: 172.29.237.78
+  compute70:
+    ip: 172.29.237.79
+  compute71:
+    ip: 172.29.237.80
+  compute72:
+    ip: 172.29.237.81
+  compute73:
+    ip: 172.29.237.82
+  compute74:
+    ip: 172.29.237.83
+  compute75:
+    ip: 172.29.237.84
+  compute76:
+    ip: 172.29.237.85
+  compute77:
+    ip: 172.29.237.86
+  compute78:
+    ip: 172.29.237.87
+  compute79:
+    ip: 172.29.237.88
+  compute80:
+    ip: 172.29.237.89
+  compute81:
+    ip: 172.29.237.90
+  compute82:
+    ip: 172.29.237.91
+  compute83:
+    ip: 172.29.237.92
+  compute84:
+    ip: 172.29.237.93
+  compute85:
+    ip: 172.29.237.94
+  compute86:
+    ip: 172.29.237.95
+  compute87:
+    ip: 172.29.237.96
+  compute88:
+    ip: 172.29.237.97
+  compute89:
+    ip: 172.29.237.98
+  compute90:
+    ip: 172.29.237.99
+  compute91:
+    ip: 172.29.237.100
+  compute92:
+    ip: 172.29.237.101
+  compute93:
+    ip: 172.29.237.102
+  compute94:
+    ip: 172.29.237.103
+  compute95:
+    ip: 172.29.237.104
+  compute96:
+    ip: 172.29.237.105
+  compute97:
+    ip: 172.29.237.106
+  compute98:
+    ip: 172.29.237.107
+  compute99:
+    ip: 172.29.237.108
+  compute100:
+    ip: 172.29.237.109
+  compute101:
+    ip: 172.29.237.110
+  compute102:
+    ip: 172.29.237.111
+  compute103:
+    ip: 172.29.237.112
+  compute104:
+    ip: 172.29.237.113
+  compute105:
+    ip: 172.29.237.114
+  compute106:
+    ip: 172.29.237.115
+  compute107:
+    ip: 172.29.237.116
+  compute108:
+    ip: 172.29.237.117
+  compute109:
+    ip: 172.29.237.118
+  compute110:
+    ip: 172.29.237.119
+  compute111:
+    ip: 172.29.237.120
+  compute112:
+    ip: 172.29.237.121
+  compute113:
+    ip: 172.29.237.122
+  compute114:
+    ip: 172.29.237.123
+  compute115:
+    ip: 172.29.237.124
+  compute116:
+    ip: 172.29.237.125
+  compute117:
+    ip: 172.29.237.126
+  compute118:
+    ip: 172.29.237.127
+  compute119:
+    ip: 172.29.237.128
+  compute120:
+    ip: 172.29.237.129
+  compute121:
+    ip: 172.29.237.130
+  compute122:
+    ip: 172.29.237.131
+  compute123:
+    ip: 172.29.237.132
+  compute124:
+    ip: 172.29.237.133
+  compute125:
+    ip: 172.29.237.134
+  compute126:
+    ip: 172.29.237.135
+  compute127:
+    ip: 172.29.237.136
+  compute128:
+    ip: 172.29.237.137
+  compute129:
+    ip: 172.29.237.138
+  compute130:
+    ip: 172.29.237.139
+  compute131:
+    ip: 172.29.237.140
+  compute132:
+    ip: 172.29.237.141
+  compute133:
+    ip: 172.29.237.142
+  compute134:
+    ip: 172.29.237.143
+  compute135:
+    ip: 172.29.237.144
+  compute136:
+    ip: 172.29.237.145
+  compute137:
+    ip: 172.29.237.146
+  compute138:
+    ip: 172.29.237.147
+  compute139:
+    ip: 172.29.237.148
+  compute140:
+    ip: 172.29.237.149
+  compute141:
+    ip: 172.29.237.150
+  compute142:
+    ip: 172.29.237.151
+  compute143:
+    ip: 172.29.237.152
+  compute144:
+    ip: 172.29.237.153
+  compute145:
+    ip: 172.29.237.154
+  compute146:
+    ip: 172.29.237.155
+  compute147:
+    ip: 172.29.237.156
+  compute148:
+    ip: 172.29.237.157
+  compute149:
+    ip: 172.29.237.158
+  compute150:
+    ip: 172.29.237.159
+  compute151:
+    ip: 172.29.237.160
+  compute152:
+    ip: 172.29.237.161
+  compute153:
+    ip: 172.29.237.162
+  compute154:
+    ip: 172.29.237.163
+  compute155:
+    ip: 172.29.237.164
+  compute156:
+    ip: 172.29.237.165
+  compute157:
+    ip: 172.29.237.166
+  compute158:
+    ip: 172.29.237.167
+  compute159:
+    ip: 172.29.237.168
+  compute160:
+    ip: 172.29.237.169
+  compute161:
+    ip: 172.29.237.170
+  compute162:
+    ip: 172.29.237.171
+  compute163:
+    ip: 172.29.237.172
+  compute164:
+    ip: 172.29.237.173
+  compute165:
+    ip: 172.29.237.174
+  compute166:
+    ip: 172.29.237.175
+  compute167:
+    ip: 172.29.237.176
+  compute168:
+    ip: 172.29.237.177
+  compute169:
+    ip: 172.29.237.178
+  compute170:
+    ip: 172.29.237.179
+  compute171:
+    ip: 172.29.237.180
+  compute172:
+    ip: 172.29.237.181
+  compute173:
+    ip: 172.29.237.182
+  compute174:
+    ip: 172.29.237.183
+  compute175:
+    ip: 172.29.237.184
+  compute176:
+    ip: 172.29.237.185
+  compute177:
+    ip: 172.29.237.186
+  compute178:
+    ip: 172.29.237.187
+  compute179:
+    ip: 172.29.237.188
+  compute180:
+    ip: 172.29.237.189
+  compute181:
+    ip: 172.29.237.190
+  compute182:
+    ip: 172.29.237.191
+  compute183:
+    ip: 172.29.237.192
+  compute184:
+    ip: 172.29.237.193
+  compute185:
+    ip: 172.29.237.194
+  compute186:
+    ip: 172.29.237.195
+  compute187:
+    ip: 172.29.237.196
+  compute188:
+    ip: 172.29.237.197
+  compute189:
+    ip: 172.29.237.198
+  compute190:
+    ip: 172.29.237.199
+  compute191:
+    ip: 172.29.237.200
+  compute192:
+    ip: 172.29.237.201
+  compute193:
+    ip: 172.29.237.202
+  compute194:
+    ip: 172.29.237.203
+  compute195:
+    ip: 172.29.237.204
+  compute196:
+    ip: 172.29.237.205
+  compute197:
+    ip: 172.29.237.206
+  compute198:
+    ip: 172.29.237.207
+  compute199:
+    ip: 172.29.237.208
+  compute200:
+    ip: 172.29.237.209
+  compute201:
+    ip: 172.29.237.210
+  compute202:
+    ip: 172.29.237.211
+  compute203:
+    ip: 172.29.237.212
+  compute204:
+    ip: 172.29.237.213
+  compute205:
+    ip: 172.29.237.214
+  compute206:
+    ip: 172.29.237.215
+  compute207:
+    ip: 172.29.237.216
+  compute208:
+    ip: 172.29.237.217
+  compute209:
+    ip: 172.29.237.218
+  compute210:
+    ip: 172.29.237.219
+  compute211:
+    ip: 172.29.237.220
+  compute212:
+    ip: 172.29.237.221
+  compute213:
+    ip: 172.29.237.222
+  compute214:
+    ip: 172.29.237.223
+  compute215:
+    ip: 172.29.237.224
+  compute216:
+    ip: 172.29.237.225
+  compute217:
+    ip: 172.29.237.226
+  compute218:
+    ip: 172.29.237.227
+  compute219:
+    ip: 172.29.237.228
+  compute220:
+    ip: 172.29.237.229
+
+# nova hypervisors
+compute_hosts: *compute
