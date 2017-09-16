@@ -19,7 +19,8 @@
 #   Adapted for pre-ansible 2.2
 #    - debug:
 #        msg: "localhost,127.0.0.1,{{ internal_lb_vip_address }},{{ external_lb_vip_address }},{{ groups['all_containers'] | map('extract', hostvars, 'container_address') | list | join(',') }}"
-    - debug:
+    - name: Build the no_proxy_env list
+      debug:
         msg: |-
           {% set _var = ['localhost', '127.0.0.1', internal_lb_vip_address,
              external_lb_vip_address] %}

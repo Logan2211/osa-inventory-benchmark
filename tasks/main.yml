@@ -60,3 +60,8 @@
   args:
     chdir: "{{ git_clone_path }}/playbooks"
   changed_when: false
+  register: test1
+
+- name: Output the test playbook profiling
+  debug:
+    msg: "{{ test1.stdout_lines[-10:] }}"
